@@ -15,8 +15,5 @@ public:
 	friend ostream& operator << (ostream& out, unordered_map <int, cstation>& cstations);
 	friend ofstream& operator << (ofstream& fout, cstation& cs);
 	friend ifstream& operator >> (ifstream& fin, cstation& cs);
-	friend void deletecstations(unordered_map <int, cstation>& cstations);
-	friend vector<int> selectcs(unordered_map<int, cstation> cstations);
-	friend void changeworkshops(unordered_map <int, cstation>& cstations);
 	int getid() { return id; };
 };
