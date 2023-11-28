@@ -36,11 +36,11 @@ int main() {
 			break;
 		}
 		case 3: {
-			cout << pipes;
+			uni.viewpipes(pipes);
 			break;
 		}
 		case 4: {
-			cout << cstations;
+			uni.viewcs(cstations);
 			break;
 		}
 		case 5: {
@@ -65,6 +65,12 @@ int main() {
 		}
 		case 10: {
 			uni.changeworkshops(cstations);
+			break;
+		}
+		case 11: {
+			break;
+		}
+		case 12: {
 			break;
 		}
 		case 0: {

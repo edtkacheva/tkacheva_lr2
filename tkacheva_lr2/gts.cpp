@@ -17,9 +17,31 @@ void gts::printmenu() {
 		<< "8. Delete cstations." << endl
 		<< "9. Edit pipes." << endl
 		<< "10. Edit cstations. " << endl
+		<< "11. Combine pipes and cstations." << endl
+		<< "12. View gts. " << endl
 		<< "0. Exit." << endl
 		<< "--------------------------------" << endl
 		<< "Enter the required number:" << endl;
+}
+void gts::viewpipes(unordered_map<int, pipe> pipes) {
+	if (pipes.size() == 0) {
+		cout << "There is no data about pipes. " << endl;
+	}
+	else {
+		for (auto& p : pipes) {
+			cout << p.second;
+		}
+	}
+}
+void gts::viewcs(unordered_map<int, cstation> cstations) {
+	if (cstations.size() == 0) {
+		cout << "There is no data about cstations. " << endl;
+	}
+	else {
+		for (auto& cs : cstations) {
+			cout << cs.second;
+		}
+	}
 }
 void gts::save_data(unordered_map<int, pipe> pipes, unordered_map<int, cstation> cstations) {
 	ofstream fout;
@@ -69,7 +91,6 @@ void gts::load_data(unordered_map<int, pipe>& pipes, unordered_map<int, cstation
 					fin >> cs;
 					cstations.insert({ cs.getid(), cs });
 				}
-				cout << cstations;
 			}
 			else if (numbercstation == 0) {
 				cout << "There is no data about cstations. " << endl;
@@ -78,7 +99,6 @@ void gts::load_data(unordered_map<int, pipe>& pipes, unordered_map<int, cstation
 					fin >> p;
 					pipes.insert({ p.getid(),p });
 				}
-				cout << pipes;
 			}
 			else {
 				for (int i = 1; i <= numberpipe; i++) {
@@ -86,13 +106,11 @@ void gts::load_data(unordered_map<int, pipe>& pipes, unordered_map<int, cstation
 					fin >> p;
 					pipes.insert({ p.getid(),p });
 				}
-				cout << pipes;
 				for (int i = 1; i <= numbercstation; i++) {
 					cstation cs;
 					fin >> cs;
 					cstations.insert({ cs.getid(), cs });
 				}
-				cout << cstations;
 			}
 		}
 	}
@@ -323,4 +341,7 @@ vector<int> gts::selectcs(unordered_map<int, cstation> cstations) {
 	}
 	}
 	return selectcstations;
+}
+void gts::combine() {
+	
 }

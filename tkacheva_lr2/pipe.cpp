@@ -21,21 +21,13 @@ istream& operator>>(istream& in, pipe& p)
 	getcorrectnumber(p.inrepair);
 	return in;
 }
-ostream& operator<<(ostream& out, unordered_map<int, pipe>& pipes)
-{
-	if (pipes.size() == 0) {
-		cout << "There is no data about pipes. " << endl;
-	}
-	else {
-		for (auto& p : pipes) {
-			out << "Pipe ID: " << p.second.id << endl;
-			out << "Pipe name: " << p.second.name << endl;
-			out << "Pipe length: " << p.second.length << endl;
-			out << "Pipe diameter: " << p.second.diameter << endl;
-			out << "Condition 'under repair': " << p.second.inrepair << endl;
-			out << "--------------------------------" << endl;
-		}
-	}
+ostream& operator<<(ostream& out, pipe& p) {
+	out << "Pipe ID: " << p.id << endl;
+	out << "Pipe name: " << p.name << endl;
+	out << "Pipe length: " << p.length << endl;
+	out << "Pipe diameter: " << p.diameter << endl;
+	out << "Condition 'under repair': " << p.inrepair << endl;
+	out << "--------------------------------" << endl;
 	return out;
 }
 ofstream& operator<<(ofstream& fout, pipe& p)

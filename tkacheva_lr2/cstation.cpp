@@ -25,20 +25,13 @@ istream& operator>>(istream& in, cstation& cs)
 	cout << "Cstation effiency = " << cs.efficiency << "%" << endl;
 	return in;
 }
-ostream& operator<<(ostream& out, unordered_map <int, cstation>& cstations) {
-	if (cstations.size() == 0) {
-		cout << "There is no data about cstations. " << endl;
-	}
-	else {
-		for (auto& cs : cstations) {
-			out << "Compressor station ID: " << cs.second.id << endl;
-			out << "Compressor station name: " << cs.second.name << endl;
-			out << "The number of workshops: " << cs.second.workshop << endl;
-			out << "The number of working workshops: " << cs.second.workingwshop << endl;
-			out << "Effiency: " << cs.second.efficiency << "%" << endl;
-			out << "--------------------------------" << endl;
-		}
-	}
+ostream& operator<<(ostream& out, cstation& cs) {
+	out << "Compressor station ID: " << cs.id << endl;
+	out << "Compressor station name: " << cs.name << endl;
+	out << "The number of workshops: " << cs.workshop << endl;
+	out << "The number of working workshops: " << cs.workingwshop << endl;
+	out << "Effiency: " << cs.efficiency << "%" << endl;
+	out << "--------------------------------" << endl;
 	return out;
 }
 ofstream& operator<<(ofstream& fout, cstation& cs) {

@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <unordered_map>
 using namespace std;
 class pipe {
 private:
@@ -13,7 +12,7 @@ public:
 	static int ID;
 	pipe();
 	friend istream& operator >> (istream& in, pipe& p);
-	friend ostream& operator << (ostream& out, unordered_map <int, pipe>& pipes);
+	friend ostream& operator << (ostream& out, pipe& p);
 	friend ofstream& operator << (ofstream& fout, pipe& p);
 	friend ifstream& operator >> (ifstream& fin, pipe& p);
 	int getid() { return id; };
