@@ -7,8 +7,9 @@ private:
 public:
 	string name = "";
 	double length = 0;
-	double diameter = 0;
+	int diameter = 0;
 	bool inrepair = false;
+	bool used = false;
 	static int ID;
 	pipe();
 	friend istream& operator >> (istream& in, pipe& p);

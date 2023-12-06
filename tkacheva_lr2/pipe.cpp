@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <fstream>
 using namespace std;
-int pipe::ID = 0;
+int pipe::ID = 1;
 pipe::pipe()
 {
 	id = ID++;
@@ -15,8 +15,12 @@ istream& operator>>(istream& in, pipe& p)
 	getline(in, p.name);
 	cout << "Enter pipe length: " << endl;
 	getcorrectnumber(p.length);
-	cout << "Enter pipe diameter: " << endl;
+	cout << "Enter pipe diameter (500, 700, 1000 or 1400 mm): " << endl;
 	getcorrectnumber(p.diameter);
+	while (p.diameter != 500 and p.diameter != 700 and p.diameter != 1000 and p.diameter != 1400) {
+		cout << "Enter 500, 700, 1000 or 1400! " << endl;
+		getcorrectnumber(p.diameter);
+	}
 	cout << "Is the pipe being repaired? (1 - yes, 0 - no): " << endl;
 	getcorrectnumber(p.inrepair);
 	return in;
@@ -32,7 +36,7 @@ ostream& operator<<(ostream& out, pipe& p) {
 }
 ofstream& operator<<(ofstream& fout, pipe& p)
 {
-	fout << p.name << endl << p.length << endl << p.diameter << endl << p.inrepair << endl;
+	fout << p.name << endl << p.length << endl << p.diameter << endl << p.inrepair << endl << p.used << endl;
 	return fout;
 }
 ifstream& operator>>(ifstream& fin, pipe& p)
@@ -42,5 +46,6 @@ ifstream& operator>>(ifstream& fin, pipe& p)
 	fin >> p.length;
 	fin >> p.diameter;
 	fin >> p.inrepair;
+	fin >> p.used;
 	return fin;
 }

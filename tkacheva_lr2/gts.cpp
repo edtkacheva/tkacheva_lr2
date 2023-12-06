@@ -19,6 +19,7 @@ void gts::printmenu() {
 		<< "10. Edit cstations. " << endl
 		<< "11. Combine pipes and cstations." << endl
 		<< "12. View gts. " << endl
+		<< "13. Topological graph sorting. " << endl
 		<< "0. Exit." << endl
 		<< "--------------------------------" << endl
 		<< "Enter the required number:" << endl;
@@ -43,7 +44,7 @@ void gts::viewcs(unordered_map<int, cstation> cstations) {
 		}
 	}
 }
-void gts::save_data(unordered_map<int, pipe> pipes, unordered_map<int, cstation> cstations) {
+void gts::save_data(unordered_map<int, pipe> pipes, unordered_map<int, cstation> cstations, vector <vector <int> >& adjmatrix) {
 	ofstream fout;
 	string filename;
 	cout << "Enter file name: ";
@@ -61,15 +62,29 @@ void gts::save_data(unordered_map<int, pipe> pipes, unordered_map<int, cstation>
 			for (auto& cs : cstations) {
 				fout << cs.second;
 			}
+			cout << "Data was successfully saved." << endl;
 		}
-		cout << "Data was successfully saved." << endl;
+		if (adjmatrix.size() == 0) {
+			cout << "There is no data about gts. " << endl;
+		}
+		else {
+			fout << adjmatrix.size();
+			fout << endl;
+			for (int i = 0; i < adjmatrix.size(); i++) {
+				for (int j = 0; j < adjmatrix.size(); j++) {
+					fout << adjmatrix[i][j] << " ";
+				}
+				fout << endl;
+			}
+			cout << "Data about gts was successfully saved. " << endl;
+		}
 		fout.close();
 	}
 	else {
 		cout << "File couldn't be open." << endl;
 	}
 }
-void gts::load_data(unordered_map<int, pipe>& pipes, unordered_map<int, cstation>& cstations) {
+void gts::load_data(unordered_map<int, pipe>& pipes, unordered_map<int, cstation>& cstations, vector <vector <int> >& adjmatrix) {
 	ifstream fin;
 	string filename;
 	string line;
@@ -111,6 +126,18 @@ void gts::load_data(unordered_map<int, pipe>& pipes, unordered_map<int, cstation
 					fin >> cs;
 					cstations.insert({ cs.getid(), cs });
 				}
+			}
+
+		}
+		int imax;
+		fin >> imax;
+		adjmatrix.resize(imax);
+		for (int i = 0; i < imax; i++) {
+			adjmatrix[i].resize(imax);
+		}
+		for (int i = 0; i < imax; i++) {
+			for (int j = 0; j < imax; j++) {
+				fin >> adjmatrix[i][j];
 			}
 		}
 	}
@@ -342,6 +369,142 @@ vector<int> gts::selectcs(unordered_map<int, cstation> cstations) {
 	}
 	return selectcstations;
 }
-void gts::combine() {
-	
+void gts::combine(unordered_map <int, cstation>& cstations, unordered_map <int, pipe>& pipes, vector <vector <int> >& adjmatrix) {
+	int idcs1 = 0;
+	int idcs2 = 0;
+	int piped = 0;
+	cstation enter;
+	cstation exit;
+	pipe edge;
+	viewcs(cstations);
+	if (cstations.size() != 0) {
+		cout << "Enter the start CStation ID: ";
+		getcorrectnumber(idcs1);
+		for (auto& cs : cstations) {
+			if (cs.second.getid() == idcs1 and cs.second.pipes < 2) {
+				enter = cs.second;
+				cs.second.pipes++;
+			}
+		}
+		while (enter.name.empty()) {
+			cout << "There is no selected cstations. Try again! " << endl;
+			getcorrectnumber(idcs1);
+			for (auto& cs : cstations) {
+				if (cs.second.getid() == idcs1 and cs.second.pipes < 2) {
+					enter = cs.second;
+					cs.second.pipes++;
+				}
+			}
+		}
+		if (idcs1 >= adjmatrix.size()) {
+			adjmatrix.resize(idcs1 + 1);
+			for (int i = 0; i < adjmatrix.size(); i++) {
+				adjmatrix[i].resize(idcs1 + 1);
+			}
+		}
+		cout << "Enter the end CStation ID: ";
+		getcorrectnumber(idcs2);
+		while (idcs1 == idcs2) {
+			cout << "Enter different ID!" << endl;
+			getcorrectnumber(idcs2);
+			for (auto& cs : cstations) {
+				if (cs.second.getid() == idcs2 and cs.second.pipes < 2) {
+					exit = cs.second;
+					cs.second.pipes++;
+				}
+			}
+			while (exit.name.empty()) {
+				cout << "There is no selected cstations. Try again! " << endl;
+				getcorrectnumber(idcs2);
+				for (auto& cs : cstations) {
+					if (cs.second.getid() == idcs2 and cs.second.pipes < 2) {
+						exit = cs.second;
+						cs.second.pipes++;
+					}
+				}
+			}
+		}
+		if (idcs2 >= adjmatrix.size()) {
+			adjmatrix.resize(idcs2 + 1);
+			for (int i = 0; i < adjmatrix.size(); i++) {
+				adjmatrix[i].resize(idcs2 + 1);
+			}
+		}
+		cout << "--------------------------------" << endl;
+		viewpipes(pipes);
+		cout << "Enter pipe diameter (500, 700, 1000 or 1400 mm): " << endl;
+		getcorrectnumber(piped);
+		while (piped != 500 and piped != 700 and piped != 1000 and piped != 1400) {
+			cout << "Enter 500, 700, 1000 or 1400! " << endl;
+			getcorrectnumber(piped);
+		}
+		for (auto& p : pipes) {
+			if (p.second.diameter == piped and p.second.used == false) {
+				edge = p.second;
+				p.second.used = true;
+				break;
+			}
+		}
+		if (edge.name.empty()) {
+			cout << "There are no free pipes with entered diameter. Create a new pipe: " << endl;
+			cin >> edge;
+			pipes.insert({ edge.getid(), edge });
+			while (edge.diameter != piped) {
+				cout << "Create a pipe with diameter = " << piped << ". " << endl;
+				cin >> edge;
+				edge.used = true;
+			}
+			pipes.insert({ edge.getid(), edge });
+		}
+		adjmatrix[idcs2][idcs1] = edge.getid();
+		viewgts(adjmatrix);
+	}
+}
+void gts::viewgts(vector<vector<int>>& graph) {
+	for (int i = 1; i < graph.size(); i++) {
+		if (graph[i - 1].size() > 0) {
+			cout << "Cstation id: " << i << " \tIncident pipes: ";
+			for (int j = 1; j < graph.size(); j++) {
+				cout << graph[i][j] << " ";
+			}
+			cout << endl;
+		}
+	}
+}
+void gts::topologicalsorting(vector<vector<int>>& adjmatrix, vector <int>& sorted) {
+	if (loopcheck(adjmatrix) == false) {
+		cout << "Topological sort cann't be performed because the graph has a cycle. " << endl;
+	}
+	else {
+		vector <bool> visited(adjmatrix.size(), false);
+		for (int i = 1; i < adjmatrix.size(); i++) {
+			if (!visited[i - 1]) {
+				topologicalsortutil(i - 1, adjmatrix, visited, sorted);
+			}
+		}
+		reverse(sorted.begin(), sorted.end());
+		cout << "Sorted: " << endl;
+		for (int i = 1; i < sorted.size(); i++) {
+			cout << sorted[i] << endl;
+		}
+	}
+}
+void gts::topologicalsortutil(int v, vector<vector<int>>& adjmatrix, vector<bool>& visited, vector<int>& result) {
+	visited[v] = true;
+	for (int i = 0; i < adjmatrix[v].size(); i++) {
+		if (adjmatrix[v][i] != -1 && !visited[i]) {
+			topologicalsortutil(i, adjmatrix, visited, result);
+		}
+	}
+	result.push_back(v);
+}
+bool gts::loopcheck(vector<vector<int>>& adjmatrix) {
+	for (int i = 0; i < adjmatrix.size(); i++) {
+		for (int j = 0; j < adjmatrix[1].size(); j++) {
+			if (adjmatrix[i][j] != 0 && adjmatrix[j][i] != 0) {
+				return false;
+			}
+		}
+	}
+	return true;
 }

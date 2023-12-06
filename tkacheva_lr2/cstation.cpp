@@ -3,7 +3,7 @@
 #include <fstream>
 #include "cstation.h"
 #include "header.h"
-int cstation::ID = 0;
+int cstation::ID = 1;
 cstation::cstation()
 {
 	id = ID++;
@@ -35,7 +35,7 @@ ostream& operator<<(ostream& out, cstation& cs) {
 	return out;
 }
 ofstream& operator<<(ofstream& fout, cstation& cs) {
-	fout << cs.name << endl << cs.workshop << endl << cs.workingwshop << endl << cs.efficiency << endl;
+	fout << cs.name << endl << cs.workshop << endl << cs.workingwshop << endl << cs.efficiency << endl << cs.pipes << endl;
 	return fout;
 }
 ifstream& operator>>(ifstream& fin, cstation& cs) {
@@ -44,5 +44,6 @@ ifstream& operator>>(ifstream& fin, cstation& cs) {
 	fin >> cs.workshop;
 	fin >> cs.workingwshop;
 	fin >> cs.efficiency;
+	fin >> cs.pipes;
 	return fin;
 }
