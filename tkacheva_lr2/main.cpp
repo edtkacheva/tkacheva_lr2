@@ -9,12 +9,12 @@
 #include "gts.h"
 using namespace chrono;
 int main() {
-	/*redirected_output cerr_out(cerr);
+	redirected_output cerr_out(cerr);
 	string time = std::format("{:%d_%m_%Y %H_%M_%OS}", system_clock::now());
 	ofstream logfile("log_" + time + ".txt");
 	if (logfile) {
 		cerr_out.redirect(logfile);
-	}*/
+	}
 	unordered_map <int, pipe> pipes;
 	unordered_map <int, cstation> cstations;
 	vector <vector <int> > adjmatrix;
@@ -46,19 +46,19 @@ int main() {
 			break;
 		}
 		case 5: {
-			uni.save_data(pipes, cstations, adjmatrix);
+			uni.save_data(pipes, cstations);
 			break;
 		}
 		case 6: {
-			uni.load_data(pipes, cstations, adjmatrix);
+			uni.load_data(pipes, cstations);
 			break;
 		}
 		case 7: {
-			uni.deletepipes(pipes);
+			uni.deletepipes(pipes, cstations, adjmatrix);
 			break;
 		}
 		case 8: {
-			uni.deletecstations(cstations);
+			uni.deletecstations(pipes, cstations, adjmatrix);
 			break;
 		}
 		case 9: {
@@ -79,7 +79,11 @@ int main() {
 		}
 		case 13: {
 			vector <int> sorted;
-			uni.topologicalsorting(adjmatrix, sorted);
+			uni.topologicalsorting(adjmatrix);
+			break;
+		}
+		case 14: {
+			uni.deleteconnection(pipes, cstations, adjmatrix);
 			break;
 		}
 		case 0: {

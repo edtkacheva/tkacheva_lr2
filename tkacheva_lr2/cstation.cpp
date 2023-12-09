@@ -31,11 +31,12 @@ ostream& operator<<(ostream& out, cstation& cs) {
 	out << "The number of workshops: " << cs.workshop << endl;
 	out << "The number of working workshops: " << cs.workingwshop << endl;
 	out << "Effiency: " << cs.efficiency << "%" << endl;
+	out << "The number of connections: " << cs.pipes << endl;
 	out << "--------------------------------" << endl;
 	return out;
 }
 ofstream& operator<<(ofstream& fout, cstation& cs) {
-	fout << cs.name << endl << cs.workshop << endl << cs.workingwshop << endl << cs.efficiency << endl << cs.pipes << endl;
+	fout << cs.name << endl << cs.workshop << endl << cs.workingwshop << endl << cs.efficiency << endl;
 	return fout;
 }
 ifstream& operator>>(ifstream& fin, cstation& cs) {
@@ -44,6 +45,5 @@ ifstream& operator>>(ifstream& fin, cstation& cs) {
 	fin >> cs.workshop;
 	fin >> cs.workingwshop;
 	fin >> cs.efficiency;
-	fin >> cs.pipes;
 	return fin;
 }

@@ -4,6 +4,7 @@
 #include "cstation.h"
 #include <iostream>
 #include <fstream>
+#include <stack>
 using namespace std;
 void gts::printmenu() {
 	cout << "Menu: " << endl
@@ -20,6 +21,7 @@ void gts::printmenu() {
 		<< "11. Combine pipes and cstations." << endl
 		<< "12. View gts. " << endl
 		<< "13. Topological graph sorting. " << endl
+		<< "14. Delete a connection in gts. " << endl
 		<< "0. Exit." << endl
 		<< "--------------------------------" << endl
 		<< "Enter the required number:" << endl;
@@ -44,7 +46,7 @@ void gts::viewcs(unordered_map<int, cstation> cstations) {
 		}
 	}
 }
-void gts::save_data(unordered_map<int, pipe> pipes, unordered_map<int, cstation> cstations, vector <vector <int> >& adjmatrix) {
+void gts::save_data(unordered_map<int, pipe> pipes, unordered_map<int, cstation> cstations) {
 	ofstream fout;
 	string filename;
 	cout << "Enter file name: ";
@@ -64,27 +66,13 @@ void gts::save_data(unordered_map<int, pipe> pipes, unordered_map<int, cstation>
 			}
 			cout << "Data was successfully saved." << endl;
 		}
-		if (adjmatrix.size() == 0) {
-			cout << "There is no data about gts. " << endl;
-		}
-		else {
-			fout << adjmatrix.size();
-			fout << endl;
-			for (int i = 0; i < adjmatrix.size(); i++) {
-				for (int j = 0; j < adjmatrix.size(); j++) {
-					fout << adjmatrix[i][j] << " ";
-				}
-				fout << endl;
-			}
-			cout << "Data about gts was successfully saved. " << endl;
-		}
 		fout.close();
 	}
 	else {
 		cout << "File couldn't be open." << endl;
 	}
 }
-void gts::load_data(unordered_map<int, pipe>& pipes, unordered_map<int, cstation>& cstations, vector <vector <int> >& adjmatrix) {
+void gts::load_data(unordered_map<int, pipe>& pipes, unordered_map<int, cstation>& cstations) {
 	ifstream fin;
 	string filename;
 	string line;
@@ -129,23 +117,12 @@ void gts::load_data(unordered_map<int, pipe>& pipes, unordered_map<int, cstation
 			}
 
 		}
-		int imax;
-		fin >> imax;
-		adjmatrix.resize(imax);
-		for (int i = 0; i < imax; i++) {
-			adjmatrix[i].resize(imax);
-		}
-		for (int i = 0; i < imax; i++) {
-			for (int j = 0; j < imax; j++) {
-				fin >> adjmatrix[i][j];
-			}
-		}
 	}
 	else {
 		cout << "File couldn't be open." << endl;
 	}
 }
-void gts::deletepipes(unordered_map<int, pipe>& pipes) {
+void gts::deletepipes(unordered_map<int, pipe>& pipes, unordered_map<int, cstation>& cstations, vector < vector <int> >& adjmatrix) {
 	int action;
 	cout << "1. Delete all pipes. " << endl
 		<< "2. Select pipes to delete. " << endl
@@ -158,6 +135,10 @@ void gts::deletepipes(unordered_map<int, pipe>& pipes) {
 	if (action == 1) {
 		pipes.clear();
 		cout << "All pipes have been deleted. " << endl;
+		adjmatrix.clear();
+		for (auto& cs : cstations) {
+			cs.second.pipes = 0;
+		}
 	}
 	else {
 		vector <int> selectpipes = selectpipe(pipes);
@@ -168,6 +149,15 @@ void gts::deletepipes(unordered_map<int, pipe>& pipes) {
 			int i = 0;
 			for (int i : selectpipes) {
 				pipes.erase(i);
+				for (int j = 0; j < adjmatrix.size(); j++) {
+					for (int k = 0; k < adjmatrix.size(); k++) {
+						if (adjmatrix[j][k] == i) {
+							adjmatrix[j][k] = 0;
+							cstations[j].pipes -= 1;
+							cstations[k].pipes -= 1;
+						}
+					}
+				}
 			}
 			cout << "Selected pipes have been deleted. " << endl;
 		}
@@ -244,7 +234,7 @@ vector<int> gts::selectpipe(unordered_map<int, pipe> pipes) {
 	}
 	return selectpipes;
 }
-void gts::deletecstations(unordered_map<int, cstation>& cstations) {
+void gts::deletecstations(unordered_map <int, pipe>& pipes, unordered_map<int, cstation>& cstations, vector < vector <int> >& adjmatrix) {
 	int action;
 	cout << "1. Delete all cstations. " << endl
 		<< "2. Select cstations to delete. " << endl
@@ -256,7 +246,9 @@ void gts::deletecstations(unordered_map<int, cstation>& cstations) {
 	}
 	if (action == 1) {
 		cstations.clear();
+		adjmatrix.clear();
 		cout << "All cstations have been deleted. " << endl;
+
 	}
 	else {
 		vector <int> selectcstations = selectcs(cstations);
@@ -267,6 +259,17 @@ void gts::deletecstations(unordered_map<int, cstation>& cstations) {
 			int i = 0;
 			for (int i : selectcstations) {
 				cstations.erase(i);
+				for (int j = 0; j < adjmatrix.size(); j++) {
+					for (int k = 0; k < adjmatrix.size(); k++) {
+						if ((j == i or k == i) and adjmatrix[j][k] != 0) {
+							pipes[adjmatrix[j][k]].used = false;
+						}
+					}
+				}
+				adjmatrix.erase(adjmatrix.begin() + i);
+				for (int j = 0; j < adjmatrix.size(); j++) {
+					adjmatrix[j].erase(adjmatrix[j].begin() + i);
+				}
 			}
 			cout << "Selected cstations have been deleted. " << endl;
 		}
@@ -372,28 +375,20 @@ vector<int> gts::selectcs(unordered_map<int, cstation> cstations) {
 void gts::combine(unordered_map <int, cstation>& cstations, unordered_map <int, pipe>& pipes, vector <vector <int> >& adjmatrix) {
 	int idcs1 = 0;
 	int idcs2 = 0;
+	int idp = 0;
 	int piped = 0;
-	cstation enter;
-	cstation exit;
-	pipe edge;
-	viewcs(cstations);
-	if (cstations.size() != 0) {
+	if (cstations.size() != 0  || cstations.size() != 1) {
+		viewcs(cstations);
 		cout << "Enter the start CStation ID: ";
 		getcorrectnumber(idcs1);
-		for (auto& cs : cstations) {
-			if (cs.second.getid() == idcs1 and cs.second.pipes < 2) {
-				enter = cs.second;
-				cs.second.pipes++;
+		for (int i = 1; i <= cstations.size(); i++) {
+			if (cstations[i].getid() == idcs1 and cstations[i].pipes < 2) {
+				cstations[i].pipes++;
+				break;
 			}
-		}
-		while (enter.name.empty()) {
-			cout << "There is no selected cstations. Try again! " << endl;
-			getcorrectnumber(idcs1);
-			for (auto& cs : cstations) {
-				if (cs.second.getid() == idcs1 and cs.second.pipes < 2) {
-					enter = cs.second;
-					cs.second.pipes++;
-				}
+			if (i == cstations.size()) {
+				cout << "There is no selected cstations. Try again! " << endl;
+				return;
 			}
 		}
 		if (idcs1 >= adjmatrix.size()) {
@@ -404,24 +399,14 @@ void gts::combine(unordered_map <int, cstation>& cstations, unordered_map <int, 
 		}
 		cout << "Enter the end CStation ID: ";
 		getcorrectnumber(idcs2);
-		while (idcs1 == idcs2) {
-			cout << "Enter different ID!" << endl;
-			getcorrectnumber(idcs2);
-			for (auto& cs : cstations) {
-				if (cs.second.getid() == idcs2 and cs.second.pipes < 2) {
-					exit = cs.second;
-					cs.second.pipes++;
-				}
+		for (int i = 1; i <= cstations.size(); i++) {
+			if (cstations[i].getid() == idcs2 and cstations[i].pipes < 2 and idcs1 != idcs2) {
+				cstations[i].pipes++;
+				break;
 			}
-			while (exit.name.empty()) {
+			if (i == cstations.size()) {
 				cout << "There is no selected cstations. Try again! " << endl;
-				getcorrectnumber(idcs2);
-				for (auto& cs : cstations) {
-					if (cs.second.getid() == idcs2 and cs.second.pipes < 2) {
-						exit = cs.second;
-						cs.second.pipes++;
-					}
-				}
+				return;
 			}
 		}
 		if (idcs2 >= adjmatrix.size()) {
@@ -438,26 +423,41 @@ void gts::combine(unordered_map <int, cstation>& cstations, unordered_map <int, 
 			cout << "Enter 500, 700, 1000 or 1400! " << endl;
 			getcorrectnumber(piped);
 		}
-		for (auto& p : pipes) {
-			if (p.second.diameter == piped and p.second.used == false) {
-				edge = p.second;
-				p.second.used = true;
+
+		for (int i = 1; i <= pipes.size(); i++) {
+			if (pipes[i].diameter == piped and pipes[i].used == false) {
+				pipes[i].used = true;
+				idp = i;
 				break;
 			}
-		}
-		if (edge.name.empty()) {
-			cout << "There are no free pipes with entered diameter. Create a new pipe: " << endl;
-			cin >> edge;
-			pipes.insert({ edge.getid(), edge });
-			while (edge.diameter != piped) {
-				cout << "Create a pipe with diameter = " << piped << ". " << endl;
+			else if (i == pipes.size()) {
+				cout << "There are no free pipes with entered diameter. Create a new pipe: " << endl;
+				pipe edge;
 				cin >> edge;
 				edge.used = true;
+				pipes.insert({ edge.getid(), edge });
+				while (edge.diameter != piped) {
+					cout << "Create a pipe with diameter = " << piped << ". " << endl;
+					pipe edge;
+					cin >> edge;
+					edge.used = true;
+					idp = edge.getid();
+					pipes.insert({ edge.getid(), edge });
+				}
 			}
-			pipes.insert({ edge.getid(), edge });
 		}
-		adjmatrix[idcs2][idcs1] = edge.getid();
-		viewgts(adjmatrix);
+		if (adjmatrix[idcs2][idcs1] == 0) {
+			adjmatrix[idcs2][idcs1] = idp;
+			viewgts(adjmatrix);
+		}
+		else {
+			cout << "Connection cann't be established. Try again!" << endl;
+			pipes[adjmatrix[idcs2][idcs1]].used = false;
+			adjmatrix[idcs2][idcs1] = 0;
+			cstations[idcs1].pipes = 0;
+			cstations[idcs2].pipes = 0;
+			pipes[idp].used = false;
+		}
 	}
 }
 void gts::viewgts(vector<vector<int>>& graph) {
@@ -471,32 +471,32 @@ void gts::viewgts(vector<vector<int>>& graph) {
 		}
 	}
 }
-void gts::topologicalsorting(vector<vector<int>>& adjmatrix, vector <int>& sorted) {
-	if (loopcheck(adjmatrix) == false) {
-		cout << "Topological sort cann't be performed because the graph has a cycle. " << endl;
-	}
-	else {
-		vector <bool> visited(adjmatrix.size(), false);
-		for (int i = 1; i < adjmatrix.size(); i++) {
-			if (!visited[i - 1]) {
-				topologicalsortutil(i - 1, adjmatrix, visited, sorted);
-			}
-		}
-		reverse(sorted.begin(), sorted.end());
-		cout << "Sorted: " << endl;
-		for (int i = 1; i < sorted.size(); i++) {
-			cout << sorted[i] << endl;
+void gts::topologicalsorting(vector<vector<int>>& adjmatrix) {
+	int numVertices = adjmatrix.size();
+	vector<bool> visited(numVertices, false);
+	stack<int> result;
+	for (int i = 0; i < numVertices; ++i) {
+		if (!visited[i]) {
+			topologicalsortutil(adjmatrix, i, visited, result);
 		}
 	}
+	cout << "Topological sorting: " << endl;
+	while (!result.empty()) {
+		if (result.top() != 0) {
+			cout << result.top() << " ";
+		}
+		result.pop();
+	}
+	cout << endl;
 }
-void gts::topologicalsortutil(int v, vector<vector<int>>& adjmatrix, vector<bool>& visited, vector<int>& result) {
-	visited[v] = true;
-	for (int i = 0; i < adjmatrix[v].size(); i++) {
-		if (adjmatrix[v][i] != -1 && !visited[i]) {
-			topologicalsortutil(i, adjmatrix, visited, result);
+void gts::topologicalsortutil(vector<vector<int>>& adjmatrix, int vertex, vector<bool>& visited, stack<int>& result) {
+	visited[vertex] = true;
+	for (int i = 0; i < adjmatrix.size(); ++i) {
+		if (adjmatrix[vertex][i] != 0 && !visited[i]) {
+			topologicalsortutil(adjmatrix, i, visited, result);
 		}
 	}
-	result.push_back(v);
+	result.push(vertex);
 }
 bool gts::loopcheck(vector<vector<int>>& adjmatrix) {
 	for (int i = 0; i < adjmatrix.size(); i++) {
@@ -507,4 +507,36 @@ bool gts::loopcheck(vector<vector<int>>& adjmatrix) {
 		}
 	}
 	return true;
+}
+void gts::deleteconnection(unordered_map <int, pipe>& pipes, unordered_map<int, cstation>& cstations, vector < vector <int> >& adjmatrix) {
+	int idcs1;
+	int idcs2;
+	int idp;
+	cout << "Enter the start CStation ID: ";
+	getcorrectnumber(idcs1);
+	for (int i = 1; i <= cstations.size(); i++) {
+		if (cstations[i].getid() == idcs1) {
+			break;
+		}
+		if (i == cstations.size()) {
+			cout << "There is no selected cstations. Try again! " << endl;
+			return;
+		}
+	}
+	cout << "Enter the end CStation ID: ";
+	getcorrectnumber(idcs2);
+	for (int i = 1; i <= cstations.size(); i++) {
+		if (cstations[i].getid() == idcs2) {
+			break;
+		}
+		if (i == cstations.size()) {
+			cout << "There is no selected cstations. Try again! " << endl;
+			return;
+		}
+	}
+	idp = adjmatrix[idcs2][idcs1];
+	pipes[idp].used = false;
+	adjmatrix[idcs2][idcs1] = 0;
+	cstations[idcs1].pipes -= 1;
+	cstations[idcs2].pipes -= 1;
 }

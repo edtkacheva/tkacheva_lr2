@@ -31,12 +31,13 @@ ostream& operator<<(ostream& out, pipe& p) {
 	out << "Pipe length: " << p.length << endl;
 	out << "Pipe diameter: " << p.diameter << endl;
 	out << "Condition 'under repair': " << p.inrepair << endl;
+	out << "Is the pipe used in gts?: " << p.used << endl;
 	out << "--------------------------------" << endl;
 	return out;
 }
 ofstream& operator<<(ofstream& fout, pipe& p)
 {
-	fout << p.name << endl << p.length << endl << p.diameter << endl << p.inrepair << endl << p.used << endl;
+	fout << p.name << endl << p.length << endl << p.diameter << endl << p.inrepair << endl;
 	return fout;
 }
 ifstream& operator>>(ifstream& fin, pipe& p)
@@ -46,6 +47,5 @@ ifstream& operator>>(ifstream& fin, pipe& p)
 	fin >> p.length;
 	fin >> p.diameter;
 	fin >> p.inrepair;
-	fin >> p.used;
 	return fin;
 }
