@@ -22,6 +22,7 @@ void gts::printmenu() {
 		<< "12. View gts. " << endl
 		<< "13. Topological graph sorting. " << endl
 		<< "14. Delete a connection in gts. " << endl
+		//<< "15. Search for the shortest distance between cs. " << endl
 		<< "0. Exit." << endl
 		<< "--------------------------------" << endl
 		<< "Enter the required number:" << endl;
@@ -115,6 +116,7 @@ void gts::load_data(unordered_map<int, pipe>& pipes, unordered_map<int, cstation
 					cstations.insert({ cs.getid(), cs });
 				}
 			}
+			cout << "Data was successfully loaded. " << endl;
 
 		}
 	}
@@ -352,7 +354,7 @@ vector<int> gts::selectcs(unordered_map<int, cstation> cstations) {
 	}
 	case 2: {
 		int efficiency;
-		cout << "Enter efficiency percentage: ";
+		cout << "Enter the percentage of unused workshops: ";
 		getcorrectnumber(efficiency);
 		while (efficiency > 100 || efficiency < 0) {
 			cout << "Try again!";
@@ -377,44 +379,36 @@ void gts::combine(unordered_map <int, cstation>& cstations, unordered_map <int, 
 	int idcs2 = 0;
 	int idp = 0;
 	int piped = 0;
-	if (cstations.size() != 0  || cstations.size() != 1) {
+	if (cstations.size() != 0  && cstations.size() != 1 && pipes.size() != 0) {
 		viewcs(cstations);
+		adjmatrix.resize(cstations.size() + 1);
+		for (int i = 0; i < adjmatrix.size(); i++) {
+			adjmatrix[i].resize(cstations.size() + 1);
+		}
 		cout << "Enter the start CStation ID: ";
 		getcorrectnumber(idcs1);
 		for (int i = 1; i <= cstations.size(); i++) {
 			if (cstations[i].getid() == idcs1 and cstations[i].pipes < 2) {
-				cstations[i].pipes++;
 				break;
 			}
 			if (i == cstations.size()) {
-				cout << "There is no selected cstations. Try again! " << endl;
+				cout << "Error. Try again! " << endl;
 				return;
-			}
-		}
-		if (idcs1 >= adjmatrix.size()) {
-			adjmatrix.resize(idcs1 + 1);
-			for (int i = 0; i < adjmatrix.size(); i++) {
-				adjmatrix[i].resize(idcs1 + 1);
 			}
 		}
 		cout << "Enter the end CStation ID: ";
 		getcorrectnumber(idcs2);
 		for (int i = 1; i <= cstations.size(); i++) {
-			if (cstations[i].getid() == idcs2 and cstations[i].pipes < 2 and idcs1 != idcs2) {
-				cstations[i].pipes++;
+			if (cstations[i].getid() == idcs2 and cstations[i].pipes < 2 and idcs1 != idcs2 and adjmatrix[idcs2][idcs1] == 0) {
 				break;
 			}
 			if (i == cstations.size()) {
-				cout << "There is no selected cstations. Try again! " << endl;
+				cout << "Error. Try again! " << endl;
 				return;
 			}
 		}
-		if (idcs2 >= adjmatrix.size()) {
-			adjmatrix.resize(idcs2 + 1);
-			for (int i = 0; i < adjmatrix.size(); i++) {
-				adjmatrix[i].resize(idcs2 + 1);
-			}
-		}
+		cstations[idcs1].pipes++;
+		cstations[idcs2].pipes++;
 		cout << "--------------------------------" << endl;
 		viewpipes(pipes);
 		cout << "Enter pipe diameter (500, 700, 1000 or 1400 mm): " << endl;
@@ -423,7 +417,6 @@ void gts::combine(unordered_map <int, cstation>& cstations, unordered_map <int, 
 			cout << "Enter 500, 700, 1000 or 1400! " << endl;
 			getcorrectnumber(piped);
 		}
-
 		for (int i = 1; i <= pipes.size(); i++) {
 			if (pipes[i].diameter == piped and pipes[i].used == false) {
 				pipes[i].used = true;
@@ -446,18 +439,11 @@ void gts::combine(unordered_map <int, cstation>& cstations, unordered_map <int, 
 				}
 			}
 		}
-		if (adjmatrix[idcs2][idcs1] == 0) {
-			adjmatrix[idcs2][idcs1] = idp;
-			viewgts(adjmatrix);
-		}
-		else {
-			cout << "Connection cann't be established. Try again!" << endl;
-			pipes[adjmatrix[idcs2][idcs1]].used = false;
-			adjmatrix[idcs2][idcs1] = 0;
-			cstations[idcs1].pipes = 0;
-			cstations[idcs2].pipes = 0;
-			pipes[idp].used = false;
-		}
+		adjmatrix[idcs2][idcs1] = idp;
+		viewgts(adjmatrix);
+	}
+	else {
+		cout << "There is not enough data to combine pipes and cs. " << endl;
 	}
 }
 void gts::viewgts(vector<vector<int>>& graph) {
@@ -472,22 +458,27 @@ void gts::viewgts(vector<vector<int>>& graph) {
 	}
 }
 void gts::topologicalsorting(vector<vector<int>>& adjmatrix) {
-	int numVertices = adjmatrix.size();
-	vector<bool> visited(numVertices, false);
-	stack<int> result;
-	for (int i = 0; i < numVertices; ++i) {
-		if (!visited[i]) {
-			topologicalsortutil(adjmatrix, i, visited, result);
-		}
+	if (loopcheck(adjmatrix)) {
+		cout << "GTS has a cycle, topological sorting isn't possible. " << endl;
 	}
-	cout << "Topological sorting: " << endl;
-	while (!result.empty()) {
-		if (result.top() != 0) {
-			cout << result.top() << " ";
+	else {
+		int numvertices = adjmatrix.size();
+		vector<bool> visited(numvertices, false);
+		stack<int> result;
+		for (int i = 0; i < numvertices; ++i) {
+			if (!visited[i]) {
+				topologicalsortutil(adjmatrix, i, visited, result);
+			}
 		}
-		result.pop();
+		cout << "Topological sorting: " << endl;
+		while (!result.empty()) {
+			if (result.top() != 0) {
+				cout << result.top() << " ";
+			}
+			result.pop();
+		}
+		cout << endl;
 	}
-	cout << endl;
 }
 void gts::topologicalsortutil(vector<vector<int>>& adjmatrix, int vertex, vector<bool>& visited, stack<int>& result) {
 	visited[vertex] = true;
@@ -499,14 +490,34 @@ void gts::topologicalsortutil(vector<vector<int>>& adjmatrix, int vertex, vector
 	result.push(vertex);
 }
 bool gts::loopcheck(vector<vector<int>>& adjmatrix) {
-	for (int i = 0; i < adjmatrix.size(); i++) {
-		for (int j = 0; j < adjmatrix[1].size(); j++) {
-			if (adjmatrix[i][j] != 0 && adjmatrix[j][i] != 0) {
-				return false;
+	int numvertices = adjmatrix.size();
+	vector<bool> visited(numvertices, false);
+	std::vector<bool> recursionstack(numvertices, false);
+
+	for (int i = 0; i < numvertices; ++i) {
+		if (loopcheckutil(adjmatrix, i, visited, recursionstack)) {
+			return true;
+		}
+	}
+	return false;
+}
+bool gts::loopcheckutil(vector<vector<int>>& adjmatrix, int vertex, vector<bool>& visited, vector<bool>& recursionstack) {
+	if (!visited[vertex]) {
+		visited[vertex] = true;
+		recursionstack[vertex] = true;
+		for (int neighbor = 0; neighbor < adjmatrix[vertex].size(); ++neighbor) {
+			if (adjmatrix[vertex][neighbor] != 0) {
+				if (!visited[neighbor] && loopcheckutil(adjmatrix, neighbor, visited, recursionstack)) {
+					return true;
+				}
+				else if (recursionstack[neighbor]) {
+					return true;
+				}
 			}
 		}
 	}
-	return true;
+	recursionstack[vertex] = false;
+	return false;
 }
 void gts::deleteconnection(unordered_map <int, pipe>& pipes, unordered_map<int, cstation>& cstations, vector < vector <int> >& adjmatrix) {
 	int idcs1;
@@ -534,9 +545,61 @@ void gts::deleteconnection(unordered_map <int, pipe>& pipes, unordered_map<int, 
 			return;
 		}
 	}
-	idp = adjmatrix[idcs2][idcs1];
-	pipes[idp].used = false;
-	adjmatrix[idcs2][idcs1] = 0;
-	cstations[idcs1].pipes -= 1;
-	cstations[idcs2].pipes -= 1;
+	if (adjmatrix[idcs2][idcs1] != 0) {
+		idp = adjmatrix[idcs2][idcs1];
+		pipes[idp].used = false;
+		adjmatrix[idcs2][idcs1] = 0;
+		cstations[idcs1].pipes -= 1;
+		cstations[idcs2].pipes -= 1;
+		cout << "Connection deleted successfully. " << endl;
+	}
+	else {
+		cout << "Connection doesn't exist. " << endl;
+	}
+}
+void gts::shortestdistance(unordered_map<int, pipe>& pipes, unordered_map<int, cstation>& cstations, vector<vector<int>>& adjmatrix) {
+	int entercs;
+	cout << "Enter the start cs: " << endl;
+	getcorrectnumber(entercs);
+	for (int i = 1; i <= cstations.size(); i++) {
+		if (cstations[i].getid() == entercs) {
+			break;
+		}
+		if (i == cstations.size()) {
+			cout << "There is no selected cstations. Try again! " << endl;
+			return;
+		}
+	}
+	int endcs;
+	cout << "Enter the end cs: " << endl;
+	getcorrectnumber(endcs);
+	for (int i = 1; i <= cstations.size(); i++) {
+		if (cstations[i].getid() == endcs) {
+			break;
+		}
+		if (i == cstations.size()) {
+			cout << "There is no selected cstations. Try again! " << endl;
+			return;
+		}
+	}
+	int n = adjmatrix.size();
+	vector<int> dist(n, INT_MAX);
+	vector<bool> visited(n, false);
+	dist[entercs] = 0;
+	for (int count = 0; count < n - 1; count++) {
+		int minDist = INT_MAX, minVertex = -1;
+		for (int v = 0; v < n; v++) {
+			if (!visited[v] && dist[v] < minDist) {
+				minDist = dist[v];
+				minVertex = v;
+			}
+		}
+		visited[minVertex] = true;
+		for (int v = 0; v < n; v++) {
+			if (!visited[v] && adjmatrix[minVertex][v] != -1 && dist[minVertex] != INT_MAX) {
+				dist[v] = min(dist[v], dist[minVertex] + adjmatrix[minVertex][v]);
+			}
+		}
+		
+	}
 }

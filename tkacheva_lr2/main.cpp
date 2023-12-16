@@ -18,7 +18,6 @@ int main() {
 	unordered_map <int, pipe> pipes;
 	unordered_map <int, cstation> cstations;
 	vector <vector <int> > adjmatrix;
-	vector <int> sorted;
 	gts uni;
 	while (true) {
 		uni.printmenu();
@@ -78,7 +77,6 @@ int main() {
 			break;
 		}
 		case 13: {
-			vector <int> sorted;
 			uni.topologicalsorting(adjmatrix);
 			break;
 		}
@@ -86,6 +84,10 @@ int main() {
 			uni.deleteconnection(pipes, cstations, adjmatrix);
 			break;
 		}
+		/*case 15: {
+			uni.shortestdistance(pipes, cstations, adjmatrix);
+			break;
+		}*/
 		case 0: {
 			return 0;
 		}

@@ -21,5 +21,7 @@ public:
 	static void topologicalsorting(vector<vector<int>>& adjmatrix);
 	static void topologicalsortutil(vector<vector<int>>& adjmatrix, int vertex, vector<bool>& visited, stack<int>& result);
 	static bool loopcheck(vector<vector<int>>& adjmatrix);
+	static bool loopcheckutil(vector<vector<int>>& adjmatrix, int vertex, vector<bool>& visited, vector<bool>& recursionstack);
 	static void deleteconnection(unordered_map <int, pipe>& pipes, unordered_map<int, cstation>& cstations, vector < vector <int> >& adjmatrix);
+	static void shortestdistance(unordered_map <int, pipe>& pipes, unordered_map<int, cstation>& cstations, vector < vector <int> >& adjmatrix);
 };
