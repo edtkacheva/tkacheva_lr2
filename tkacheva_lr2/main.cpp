@@ -84,10 +84,10 @@ int main() {
 			uni.deleteconnection(pipes, cstations, adjmatrix);
 			break;
 		}
-		/*case 15: {
+		case 15: {
 			uni.shortestdistance(pipes, cstations, adjmatrix);
 			break;
-		}*/
+		}
 		case 0: {
 			return 0;
 		}

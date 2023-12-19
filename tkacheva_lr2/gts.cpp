@@ -22,7 +22,7 @@ void gts::printmenu() {
 		<< "12. View gts. " << endl
 		<< "13. Topological graph sorting. " << endl
 		<< "14. Delete a connection in gts. " << endl
-		//<< "15. Search for the shortest distance between cs. " << endl
+		<< "15. Search for the shortest distance between cs. " << endl
 		<< "0. Exit." << endl
 		<< "--------------------------------" << endl
 		<< "Enter the required number:" << endl;
@@ -439,7 +439,7 @@ void gts::combine(unordered_map <int, cstation>& cstations, unordered_map <int, 
 				}
 			}
 		}
-		adjmatrix[idcs2][idcs1] = idp;
+		adjmatrix[idcs1][idcs2] = idp;
 		viewgts(adjmatrix);
 	}
 	else {
@@ -545,10 +545,10 @@ void gts::deleteconnection(unordered_map <int, pipe>& pipes, unordered_map<int, 
 			return;
 		}
 	}
-	if (adjmatrix[idcs2][idcs1] != 0) {
-		idp = adjmatrix[idcs2][idcs1];
+	if (adjmatrix[idcs1][idcs2] != 0) {
+		idp = adjmatrix[idcs1][idcs2];
 		pipes[idp].used = false;
-		adjmatrix[idcs2][idcs1] = 0;
+		adjmatrix[idcs1][idcs2] = 0;
 		cstations[idcs1].pipes -= 1;
 		cstations[idcs2].pipes -= 1;
 		cout << "Connection deleted successfully. " << endl;
@@ -582,24 +582,44 @@ void gts::shortestdistance(unordered_map<int, pipe>& pipes, unordered_map<int, c
 			return;
 		}
 	}
-	int n = adjmatrix.size();
-	vector<int> dist(n, INT_MAX);
-	vector<bool> visited(n, false);
-	dist[entercs] = 0;
-	for (int count = 0; count < n - 1; count++) {
-		int minDist = INT_MAX, minVertex = -1;
-		for (int v = 0; v < n; v++) {
-			if (!visited[v] && dist[v] < minDist) {
-				minDist = dist[v];
-				minVertex = v;
+	vector <int> path;
+	int INF = INT_MAX;
+	int n = cstations.size();
+	vector <int> distance (n, INF);
+	vector <int> visited (n);
+	int temp, minindex, min;
+	int begin_index = entercs;
+	for (int i = 0; i < n; i++) {
+		distance[i] = INF;
+		visited[i] = 1;
+	}
+	distance[begin_index] = 0;
+	do {
+		minindex = INF;
+		min = INF;
+		for (int i = 0; i < n; i++) {
+			if ((visited[i] == 1) && (distance[i] < min)) {
+				min = distance[i];
+				minindex = i;
 			}
 		}
-		visited[minVertex] = true;
-		for (int v = 0; v < n; v++) {
-			if (!visited[v] && adjmatrix[minVertex][v] != -1 && dist[minVertex] != INT_MAX) {
-				dist[v] = min(dist[v], dist[minVertex] + adjmatrix[minVertex][v]);
+		if (minindex < INF) {
+			for (int i = 0; i < n; i++) {
+				if (adjmatrix[minindex][i] > 0 && !pipes[adjmatrix[minindex][i]].inrepair) {
+					temp = min + pipes[adjmatrix[minindex][i]].length;
+					if (temp < distance[i]) {
+						distance[i] = temp;
+					}
+				}
 			}
+			visited[minindex] = 0;
 		}
-		
+	} while (minindex < INF);
+	if (distance[endcs] != INF) {
+		cout << "Shortest distance: " << endl;
+		cout << distance[endcs] << endl;
+	}
+	else {
+		cout << "It's impossible to find the shortest distance between CS." << endl;
 	}
 }
