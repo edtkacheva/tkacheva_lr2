@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <stack>
+#include <queue>
 using namespace std;
 void gts::printmenu() {
 	cout << "Menu: " << endl
@@ -23,6 +24,7 @@ void gts::printmenu() {
 		<< "13. Topological graph sorting. " << endl
 		<< "14. Delete a connection in gts. " << endl
 		<< "15. Search for the shortest distance between cs. " << endl
+		<< "16. Search for maximum flow. " << endl
 		<< "0. Exit." << endl
 		<< "--------------------------------" << endl
 		<< "Enter the required number:" << endl;
@@ -178,6 +180,23 @@ void gts::changeinrepair(unordered_map <int, pipe>& pipes) {
 	if (action == 1) {
 		for (auto& p : pipes) {
 			p.second.inrepair = !p.second.inrepair;
+			if (!p.second.inrepair) {
+				if (p.second.diameter == 500) {
+					p.second.perfomance = 5;
+				}
+				else if (p.second.diameter == 700) {
+					p.second.perfomance = 12;
+				}
+				else if (p.second.diameter == 1000) {
+					p.second.perfomance = 30;
+				}
+				else {
+					p.second.perfomance = 100;
+				}
+			}
+			else {
+				p.second.perfomance = 0;
+			}
 		}
 		cout << "All pipes have been edited." << endl;
 	}
@@ -191,6 +210,23 @@ void gts::changeinrepair(unordered_map <int, pipe>& pipes) {
 				int i = p.second.getid();
 				if (contains(selectpipes, i)) {
 					p.second.inrepair = !p.second.inrepair;
+					if (!p.second.inrepair) {
+						if (p.second.diameter == 500) {
+							p.second.perfomance = 5;
+						}
+						else if (p.second.diameter == 700) {
+							p.second.perfomance = 12;
+						}
+						else if (p.second.diameter == 1000) {
+							p.second.perfomance = 30;
+						}
+						else {
+							p.second.perfomance = 100;
+						}
+					}
+					else {
+						p.second.perfomance = 0;
+					}
 				}
 			}
 			cout << "Selected pipes have been edited. " << endl;
@@ -420,7 +456,7 @@ void gts::combine(unordered_map <int, cstation>& cstations, unordered_map <int, 
 		for (int i = 1; i <= pipes.size(); i++) {
 			if (pipes[i].diameter == piped and pipes[i].used == false) {
 				pipes[i].used = true;
-				idp = i;
+				idp = pipes[i].getid();
 				break;
 			}
 			else if (i == pipes.size()) {
@@ -428,15 +464,15 @@ void gts::combine(unordered_map <int, cstation>& cstations, unordered_map <int, 
 				pipe edge;
 				cin >> edge;
 				edge.used = true;
-				pipes.insert({ edge.getid(), edge });
+				idp = edge.getid();
 				while (edge.diameter != piped) {
 					cout << "Create a pipe with diameter = " << piped << ". " << endl;
-					pipe edge;
 					cin >> edge;
 					edge.used = true;
 					idp = edge.getid();
-					pipes.insert({ edge.getid(), edge });
 				}
+				pipes.insert({ edge.getid(), edge });
+				break;
 			}
 		}
 		adjmatrix[idcs1][idcs2] = idp;
@@ -584,9 +620,9 @@ void gts::shortestdistance(unordered_map<int, pipe>& pipes, unordered_map<int, c
 	}
 	vector <int> path;
 	int INF = INT_MAX;
-	int n = cstations.size();
-	vector <int> distance (n, INF);
-	vector <int> visited (n);
+	int n = cstations.size() + 1;
+	vector <int> distance(n, INF);
+	vector <int> visited(n);
 	int temp, minindex, min;
 	int begin_index = entercs;
 	for (int i = 0; i < n; i++) {
@@ -621,5 +657,78 @@ void gts::shortestdistance(unordered_map<int, pipe>& pipes, unordered_map<int, c
 	}
 	else {
 		cout << "It's impossible to find the shortest distance between CS." << endl;
+	}
+}
+void gts::maxflow(unordered_map<int, pipe>& pipes, unordered_map<int, cstation>& cstations, vector<vector<int>>& adjmatrix) {
+	int n = adjmatrix.size();
+	int source;
+	int sink;
+	cout << "Enter the source cs: ";
+	getcorrectnumber(source);
+	for (int i = 1; i <= cstations.size(); i++) {
+		if (cstations[i].getid() == source) {
+			break;
+		}
+		if (i == cstations.size()) {
+			cout << "There is no selected cstations. Try again! " << endl;
+			return;
+		}
+	}
+	cout << "Enter the end cs: ";
+	getcorrectnumber(sink);
+	for (int i = 1; i <= cstations.size(); i++) {
+		if (cstations[i].getid() == sink) {
+			break;
+		}
+		if (i == cstations.size()) {
+			cout << "There is no selected cstations. Try again! " << endl;
+			return;
+		}
+	}
+	vector<bool> visited(n, false);
+	vector<int> parent(n, -1);
+	int maxflow = 0;
+	while (true) {
+		fill(visited.begin(), visited.end(), false);
+		fill(parent.begin(), parent.end(), -1);
+		queue<int> q;
+		q.push(source);
+		visited[source] = true;
+		parent[source] = -1;
+		while (!q.empty()) {
+			int current = q.front();
+			q.pop();
+			for (int next = 0; next < n; next++) {
+				if (!visited[next] && adjmatrix[current][next] > 0 && pipes[adjmatrix[current][next]].perfomance > 0) {
+					q.push(next);
+					parent[next] = current;
+					visited[next] = true;
+				}
+			}
+		}
+		if (!visited[sink]) {
+			break;
+		}
+		int mincapacity = INT_MAX;
+		int current = sink;
+		while (current != source) {
+			int prev = parent[current];
+			mincapacity = min(mincapacity, pipes[adjmatrix[prev][current]].perfomance);
+			current = prev;
+		}
+		current = sink;
+		while (current != source) {
+			int prev = parent[current];
+			pipes[adjmatrix[prev][current]].perfomance -= mincapacity;
+			pipes[adjmatrix[current][prev]].perfomance += mincapacity;
+			current = prev;
+		}
+		maxflow += mincapacity;
+	}
+	if (maxflow > 0) {
+		cout << "Maximum flow: " << maxflow << endl;
+	}
+	else {
+		cout << "It's impossible to find maximum flow. " << endl;
 	}
 }

@@ -23,6 +23,25 @@ istream& operator>>(istream& in, pipe& p)
 	}
 	cout << "Is the pipe being repaired? (1 - yes, 0 - no): " << endl;
 	getcorrectnumber(p.inrepair);
+	cout << "Perfomance: " << endl;
+	if (!p.inrepair) {
+		if (p.diameter == 500) {
+			p.perfomance = 5;
+		}
+		else if (p.diameter == 700) {
+			p.perfomance = 12;
+		}
+		else if (p.diameter == 1000) {
+			p.perfomance = 30;
+		}
+		else {
+			p.perfomance = 100;
+		}
+	}
+	else {
+		p.perfomance = 0;
+	}
+	cout << p.perfomance << endl;
 	return in;
 }
 ostream& operator<<(ostream& out, pipe& p) {
@@ -32,6 +51,7 @@ ostream& operator<<(ostream& out, pipe& p) {
 	out << "Pipe diameter: " << p.diameter << endl;
 	out << "Condition 'under repair': " << p.inrepair << endl;
 	out << "Is the pipe used in gts?: " << p.used << endl;
+	out << "Perfomance: " << p.perfomance << endl;
 	out << "--------------------------------" << endl;
 	return out;
 }
@@ -47,5 +67,22 @@ ifstream& operator>>(ifstream& fin, pipe& p)
 	fin >> p.length;
 	fin >> p.diameter;
 	fin >> p.inrepair;
+	if (!p.inrepair) {
+		if (p.diameter == 500) {
+			p.perfomance = 5;
+		}
+		else if (p.diameter == 700) {
+			p.perfomance = 12;
+		}
+		else if (p.diameter == 1000) {
+			p.perfomance = 30;
+		}
+		else {
+			p.perfomance = 100;
+		}
+	}
+	else {
+		p.perfomance = 0;
+	}
 	return fin;
 }

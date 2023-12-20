@@ -24,4 +24,5 @@ public:
 	static bool loopcheckutil(vector<vector<int>>& adjmatrix, int vertex, vector<bool>& visited, vector<bool>& recursionstack);
 	static void deleteconnection(unordered_map <int, pipe>& pipes, unordered_map<int, cstation>& cstations, vector < vector <int> >& adjmatrix);
 	static void shortestdistance(unordered_map <int, pipe>& pipes, unordered_map<int, cstation>& cstations, vector < vector <int> >& adjmatrix);
+	static void maxflow(unordered_map<int, pipe>& pipes, unordered_map<int, cstation>& cstations, vector<vector<int>>& adjmatrix);
 };

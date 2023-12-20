@@ -6,10 +6,11 @@ private:
 	int id = 0;
 public:
 	string name = "";
-	double length = 0;
+	int length = 0;
 	int diameter = 0;
 	bool inrepair = false;
 	bool used = false;
+	int perfomance = 0;
 	static int ID;
 	pipe();
 	friend istream& operator >> (istream& in, pipe& p);

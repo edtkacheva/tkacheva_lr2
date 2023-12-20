@@ -88,8 +88,15 @@ int main() {
 			uni.shortestdistance(pipes, cstations, adjmatrix);
 			break;
 		}
+		case 16: {
+			uni.maxflow(pipes, cstations, adjmatrix);
+			break;
+		}
 		case 0: {
 			return 0;
+		}
+		default: {
+			cout << "Try again! " << endl;
 		}
 		}
 	}
